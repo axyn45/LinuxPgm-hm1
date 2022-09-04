@@ -22,15 +22,15 @@
 */
 queue_t *q_new()
 {
-  queue_t *q = malloc(sizeof(queue_t));
-  /* 如果 malloc 返回 NULL 呢? */
-  if (q == NULL)
-    return NULL;
+	queue_t *q = malloc(sizeof(queue_t));
+	/* 如果 malloc 返回 NULL 呢? */
+	if (q == NULL)
+		return NULL;	//空则返回空值
 
-  q->_size = 0;
-  q->_tail = NULL;
-  q->head = NULL;
-  return q;
+	q->_size = 0;		//初始化链表长度为0
+	q->_tail = NULL;	//初始化链表尾为空
+	q->head = NULL;
+	return q;			//返回创建的链表
 }
 
 /*
@@ -39,22 +39,20 @@ queue_t *q_new()
 */
 void q_free(queue_t *q)
 {
-  /* 如何释放链表元素和字符串 */
-  /* 释放队列结构 */
-  list_ele_t *cur = q->head;
-  list_ele_t *nxt = (cur == NULL ? NULL : cur->next);
+	/* 如何释放链表元素和字符串 */
+	/* 释放队列结构 */
+	if(q->head==NULL) {free(q); return;}	//若表头为空则释放q并返回
+	list_ele_t *cur = q->head;		//让cur指向链表表头
+	list_ele_t *nxt =cur->next;		//若表头为空则nxt也为空，否则指向cur下一个元素
 
-  while (cur != NULL)
-  {
-    if (cur == NULL)
-      nxt = NULL;
-    else
-      nxt = cur->next;
-    free(cur);
-    cur = nxt;
-    nxt = (cur == NULL ? NULL : cur->next);
-  }
-  free(q);
+	while (nxt != NULL)	
+	{
+		free(cur);			//释放cur
+		cur = nxt;			//cur后移
+		nxt = nxt->next;	//nxt后移
+	}
+	free(cur);		//释放cur
+	free(q);		//释放q
 }
 
 /*
@@ -66,29 +64,29 @@ void q_free(queue_t *q)
  */
 bool q_insert_head(queue_t *q, char *s)
 {
-  list_ele_t *newh;
-  /* 如果 q 为 NULL你该怎么办? */
-  if (q == NULL)
-    return false;
+	list_ele_t *newh;
+	/* 如果 q 为 NULL你该怎么办? */
+	if (q == NULL)
+		return false;	//q空则返回空值
 
-  newh = malloc(sizeof(list_ele_t));
-  /* 别忘了为字符串分配空间并拷贝它 */
-  if (newh == NULL)
-    return false;
-  newh->value = malloc(sizeof(*s)), strcpy(newh->value, s);
+	newh = malloc(sizeof(list_ele_t));
+	/* 别忘了为字符串分配空间并拷贝它 */
+	if (newh == NULL)
+		return false; 		//空间分配失败，返回false
+	newh->value = malloc(sizeof(*s)), strcpy(newh->value, s);	//为字符串分配空间
 
-  /* 如果其中一个malloc 调用返回 NULL 该怎么办? */
+	/* 如果其中一个malloc 调用返回 NULL 该怎么办? */
 
-  if (newh->value == NULL)
-  {
-    free(newh);
-    return false;
-  }
+	if (newh->value == NULL)	//分配字符串空间失败
+	{
+		free(newh);				//释放新建节点
+		return false;			//返回false
+	}
 
-  newh->next = q->head;
-  q->head = newh;
-  q->_size++;
-  return true;
+	newh->next = q->head;		//插入链表
+	q->head = newh;				//连接表头
+	q->_size++;					//表长加一
+	return true;
 }
 
 /*
@@ -100,29 +98,29 @@ bool q_insert_head(queue_t *q, char *s)
  */
 bool q_insert_tail(queue_t *q, char *s)
 {
-  /* 你需要为该函数编写完整的代码 */
-  /* 记住: 函数时间复杂度为 O(1) */
-  if (q != NULL)
-  {
-    list_ele_t *newt = malloc(sizeof(list_ele_t *));
-    if (newt == NULL)
-      return false;
-    newt->value = malloc(sizeof(s));
-    if (newt->value == NULL)
-    {
-      free(newt);
-      return false;
-    }
+	/* 你需要为该函数编写完整的代码 */
+	/* 记住: 函数时间复杂度为 O(1) */
+	if (q != NULL)
+	{
+		//分配空间和异常处理
+		list_ele_t *newt = malloc(sizeof(list_ele_t *));
+		if (newt == NULL)
+			return false;
+		newt->value = malloc(sizeof(s));
+		if (newt->value == NULL)
+		{
+			free(newt);
+			return false;
+		}
 
-    strcpy(newt->value, s);
+		strcpy(newt->value, s);
 
-    q->_tail->next = newt;
-    q->_tail = newt;
-    q->_size++;
-    return true;
-  }
-
-  return false;
+		q->_tail->next = newt;	//插入表尾
+		q->_tail = newt;		//更新表尾指针
+		q->_size++;				//表长加一
+		return true;
+	}
+	else return false;	//无法分配空间，返回false
 }
 
 /*
@@ -135,16 +133,17 @@ bool q_insert_tail(queue_t *q, char *s)
 */
 bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
 {
-  /* 你需要修复这个代码 */
-  if (q == NULL || q->_size == 0)
-    return false;
-  if (sp != NULL)
-    strcpy(sp, q->head->value);
-  list_ele_t *temp = q->head;
-  q->head = q->head->next;
-  free(temp->value), free(temp);
-  q->_size--;
-  return true;
+	/* 你需要修复这个代码 */
+	if (q == NULL || q->_size == 0)
+		return false;		//表为初始化或为空则返回false
+	if (sp != NULL)
+		strcpy(sp, q->head->value);
+
+	list_ele_t *temp = q->head;		//临时保存表头
+	q->head = q->head->next;		//表头指针后移
+	free(temp->value), free(temp);	//释放原表头
+	q->_size--;						//表长减一
+	return true;
 }
 
 /*
@@ -153,13 +152,13 @@ bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
  */
 int q_size(queue_t *q)
 {
-  /* 你需要为这个函数编写代码 */
-  /* 记住: 函数时间复杂度为 O(1) */
-  if (q != NULL && q->_size > 0)
-  {
-    return q->_size;
-  }
-  return 0;
+	/* 你需要为这个函数编写代码 */
+	/* 记住: 函数时间复杂度为 O(1) */
+	if (q != NULL && q->_size > 0)
+	{
+		return q->_size;
+	}
+	return 0;
 }
 
 /*
@@ -171,21 +170,21 @@ int q_size(queue_t *q)
  */
 void q_reverse(queue_t *q)
 {
-  /* 你需要为这个函数编写代码 */
-  if (q == NULL || q->_size <= 1)
-    return;
+	/* 你需要为这个函数编写代码 */
+	if (q == NULL || q->_size <= 1)
+		return;		//表未初始化或长度小于2则直接返回
 
-  q->_tail = q->head;
+	q->_tail = q->head;	//表头变表尾
 
-  list_ele_t *cur = q->head;
-  list_ele_t *nxt = cur->next;
+	list_ele_t *cur = q->head;
+	list_ele_t *nxt = cur->next;
 
-  while (nxt != NULL)
-  {
-    list_ele_t *t = nxt;
-    nxt = nxt->next;
-    t->next = cur;
-    cur = t;
-  }
-  q->_tail->next = NULL;
+	while (nxt != NULL)
+	{
+		list_ele_t *t = nxt;	//临时节点保存nxt
+		nxt = nxt->next;		//nxt后移
+		t->next = cur;			//原本的nxt放到cur前
+		cur = t;				//cur后移
+	}
+	q->_tail->next = NULL;	//表尾next变为空
 }
